@@ -3,8 +3,44 @@ spring:
     default: local
   application:
     name: kitchensink
+  security:
+    oauth2:
+      authorizationserver:
+        client:
+          members-client:
+            registration:
+              client-id: "members-client"
+              client-secret: "{noop}secret"
+              client-name: "Members"
+              client-authentication-methods:
+                - "client_secret_basic"
+              authorization-grant-types:
+                - "authorization_code"
+                - "refresh_token"
+              redirect-uris:
+                - "http://localhost:8080/login/oauth2/code/membesr-client-oidc"
+                - "http://localhost:8080/authorized"
+                - "https://oauth.pstmn.io/v1/callback"
+              post-logout-redirect-uris:
+                - "http://localhost:8080/"
+              scopes:
+                - "openid"
+                - "profile"
+                - "members.read"
+            require-authorization-consent: false
+        issuer: http://localhost:8080/
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/
 
 management:
   health:
     mongo:
       enabled: false
+
+logging:
+  level:
+    root: info
+    org:
+      springframework:
+        security: debug
