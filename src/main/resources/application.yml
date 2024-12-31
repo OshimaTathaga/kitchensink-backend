@@ -1,0 +1,10 @@
+spring:
+  profiles:
+    default: local
+  application:
+    name: kitchensink
+
+management:
+  health:
+    mongo:
+      enabled: false

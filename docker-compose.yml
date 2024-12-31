@@ -1,0 +1,35 @@
+name: kitchensink
+
+services:
+  mongo-db:
+    image: mongo:7.0
+    container_name: mongo-db
+    hostname: mongo-db
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: kitchensink
+      MONGO_INITDB_ROOT_USERNAME: mongo
+      MONGO_INITDB_ROOT_PASSWORD: mongo
+    volumes:
+      - mongodb_data:/data/db
+    restart: always
+
+  mongo-ui:
+    image: mongo-express:1.0
+    container_name: mongo-ui
+    hostname: mongo-ui
+    restart: always
+    ports:
+      - "8017:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongo:mongo@mongo-db:27017/
+      ME_CONFIG_BASICAUTH: false
+
+networks:
+  default:
+    name: kitchensink_net
+
+volumes:
+  mongodb_data:
+    name: kitchensink_mongodb_data
