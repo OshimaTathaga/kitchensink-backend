@@ -10,7 +10,7 @@ spring:
           members-client:
             registration:
               client-id: "members-client"
-              client-secret: "{noop}secret"
+              client-secret: "$2a$10$dDn7rr.LiybapbAFzYTYgevCM03QrYKZzkb/igWu6FvuRS6BjPL8C"
               client-name: "Members"
               client-authentication-methods:
                 - "client_secret_basic"
@@ -44,3 +44,7 @@ logging:
     org:
       springframework:
         security: debug
+        data:
+          mongodb:
+            core:
+              MongoTemplate: DEBUG
