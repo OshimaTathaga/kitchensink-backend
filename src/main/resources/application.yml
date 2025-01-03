@@ -3,6 +3,7 @@ spring:
     default: local
   application:
     name: kitchensink
+  # https://www.baeldung.com/spring-security-oauth-auth-server
   security:
     oauth2:
       authorizationserver:
@@ -10,24 +11,27 @@ spring:
           members-client:
             registration:
               client-id: "members-client"
-              client-secret: "$2a$10$dDn7rr.LiybapbAFzYTYgevCM03QrYKZzkb/igWu6FvuRS6BjPL8C"
               client-name: "Members"
               client-authentication-methods:
-                - "client_secret_basic"
+                - "none"
               authorization-grant-types:
                 - "authorization_code"
                 - "refresh_token"
               redirect-uris:
-                - "http://localhost:8080/login/oauth2/code/membesr-client-oidc"
-                - "http://localhost:8080/authorized"
-                - "https://oauth.pstmn.io/v1/callback"
+                - "http://localhost:8080/login/oauth2/code/members-client-oidc" # Frontend URL
+                - "http://localhost:8080/authorized" # Extra Frontend URL if needed
+                - "https://oauth.pstmn.io/v1/callback" # For Postman Testing
               post-logout-redirect-uris:
-                - "http://localhost:8080/"
+                - "http://localhost:8080/" # Frontend Post Logout URL
               scopes:
                 - "openid"
                 - "profile"
                 - "api:members"
             require-authorization-consent: false
+            require-proof-key: true
+            token:
+              access-token-time-to-live: 3600000
+              refresh-token-time-to-live: 18000000
         issuer: http://localhost:8080/
       resourceserver:
         jwt:
