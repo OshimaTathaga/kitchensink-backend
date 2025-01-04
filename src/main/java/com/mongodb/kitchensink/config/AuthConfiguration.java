@@ -1,7 +1,13 @@
 package com.mongodb.kitchensink.config;
 
 import com.mongodb.kitchensink.service.MongoUserDetailService;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.*;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -43,12 +49,8 @@ public class AuthConfiguration {
 
         return http
                 .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
-                .with(authorizationServerConfigurer, authorizationServer ->
-                        authorizationServer.oidc(Customizer.withDefaults())    // Enable OpenID Connect 1.0
-                )
-                .authorizeHttpRequests(authorize ->
-                        authorize.anyRequest().authenticated()
-                )
+                .with(authorizationServerConfigurer, authorizationServer -> authorizationServer.oidc(Customizer.withDefaults()))
+                .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider)
                 .exceptionHandling((exceptions) -> exceptions
                         .defaultAuthenticationEntryPointFor(
@@ -62,15 +64,15 @@ public class AuthConfiguration {
     @Bean
     @Order(2)
     public SecurityFilterChain jwtFilterChain(HttpSecurity http) throws Exception {
-        http.securityMatcher("/api/**")
+        return http
+                .securityMatcher("/api/**")
                 .authorizeHttpRequests(authorize ->
                         authorize.anyRequest().hasAuthority("SCOPE_api:members")
                 )
                 // Ignoring the session cookie
                 .sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .oauth2ResourceServer(resourceServer -> resourceServer.jwt(jwtTokenCustomizer -> jwtTokenCustomizer.jwtAuthenticationConverter(new JwtAuthenticationConverter())));
-
-        return http.build();
+                .oauth2ResourceServer(resourceServer -> resourceServer.jwt(jwtTokenCustomizer -> jwtTokenCustomizer.jwtAuthenticationConverter(new JwtAuthenticationConverter())))
+                .build();
     }
 
     @Bean
@@ -108,5 +110,11 @@ public class AuthConfiguration {
                 });
             }
         };
+    }
+
+    @Bean
+    public JWKSource<SecurityContext> jwkSource(@Value("${app.jwt-private-key}") String jwtPrivateKey) throws JOSEException {
+        JWK jwk = RSAKey.parseFromPEMEncodedObjects(jwtPrivateKey);
+        return new ImmutableJWKSet<>(new JWKSet(jwk));
     }
 }
