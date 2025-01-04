@@ -27,8 +27,8 @@ public class MemberController {
     }
 
     @GetMapping("/{email}")
-    @PreAuthorize("hasRole('ADMIN') or #principal.getName().equals(#email)")
-    public ResponseEntity<MemberDTO> getMemberByEmail(@PathVariable String email, Principal principal) {
+    @PreAuthorize("hasRole('ADMIN') or authentication.name.equals(#email)")
+    public ResponseEntity<MemberDTO> getMemberByEmail(@PathVariable String email) {
         return ResponseEntity.ok(memberService.findByEmail(email));
     }
 
@@ -42,8 +42,8 @@ public class MemberController {
     }
 
     @DeleteMapping("/{email}")
-    @PreAuthorize("hasRole('ADMIN') or #principal.getName().equals(#email)")
-    public ResponseEntity<Void> deleteMember(@PathVariable String email, Principal principal) {
+    @PreAuthorize("hasRole('ADMIN') or authentication.name.equals(#email)")
+    public ResponseEntity<Void> deleteMember(@PathVariable String email) {
         memberService.delete(email);
 
         return ResponseEntity.noContent().build();
