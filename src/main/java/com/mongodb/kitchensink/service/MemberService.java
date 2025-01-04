@@ -1,6 +1,7 @@
 package com.mongodb.kitchensink.service;
 
 import com.mongodb.kitchensink.document.Member;
+import com.mongodb.kitchensink.error.ErrorCode;
 import com.mongodb.kitchensink.error.KitchenSinkException;
 import com.mongodb.kitchensink.model.AuthMember;
 import com.mongodb.kitchensink.model.co.MemberCO;
@@ -31,7 +32,13 @@ public class MemberService implements UserDetailsService {
     public MemberDTO findByEmail(String email) {
         return memberRepository.findByEmail(email)
                 .map(MemberDTO::from)
-                .orElseThrow(() -> new KitchenSinkException("User with email '%s' not found".formatted(email)));
+                .orElseThrow(() ->
+                        KitchenSinkException
+                                .builder()
+                                .errorCode(ErrorCode.NOT_FOUND)
+                                .message("User with email '%s' not found".formatted(email))
+                                .build()
+                );
     }
 
     public List<MemberDTO> findAll() {

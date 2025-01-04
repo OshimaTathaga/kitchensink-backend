@@ -1,8 +1,7 @@
 package com.mongodb.kitchensink.config;
 
-import com.mongodb.kitchensink.document.Member;
-import com.mongodb.kitchensink.error.KitchenSinkException;
-import com.mongodb.kitchensink.model.AuthMember;
+import com.mongodb.kitchensink.error.ErrorCode;
+import com.mongodb.kitchensink.error.RestExceptionHandling;
 import com.mongodb.kitchensink.service.MemberService;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWK;
@@ -24,7 +23,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
@@ -46,6 +44,8 @@ import java.util.stream.Collectors;
 @EnableMethodSecurity
 public class AuthConfiguration {
 
+    private final RestExceptionHandling restExceptionHandling;
+
     @Bean
     @Order(1)
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http, AuthenticationProvider authenticationProvider) throws Exception {
@@ -56,7 +56,7 @@ public class AuthConfiguration {
                 .with(authorizationServerConfigurer, authorizationServer -> authorizationServer.oidc(Customizer.withDefaults()))
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider)
-                .exceptionHandling((exceptions) -> exceptions
+                .exceptionHandling(customizer -> customizer
                         .defaultAuthenticationEntryPointFor(
                                 new LoginUrlAuthenticationEntryPoint("/login"),
                                 new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
@@ -76,6 +76,10 @@ public class AuthConfiguration {
                 // Ignoring the session cookie
                 .sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2ResourceServer(resourceServer -> resourceServer.jwt(jwtTokenCustomizer -> jwtTokenCustomizer.jwtAuthenticationConverter(new JwtAuthenticationConverter())))
+                .exceptionHandling(customizer -> customizer
+                        .authenticationEntryPoint((request, response, authException) -> restExceptionHandling.setErrorResponse(response, authException, ErrorCode.UNAUTHENTICATED))
+                        .accessDeniedHandler((request, response, authException) -> restExceptionHandling.setErrorResponse(response, authException, ErrorCode.UNAUTHORIZED))
+                )
                 .build();
     }
 

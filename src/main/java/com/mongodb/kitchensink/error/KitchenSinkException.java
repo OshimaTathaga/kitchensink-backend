@@ -1,15 +1,18 @@
 package com.mongodb.kitchensink.error;
 
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.experimental.FieldDefaults;
+
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Getter
 public class KitchenSinkException extends RuntimeException {
-    public KitchenSinkException(String message) {
-        super(message);
-    }
+    ErrorCode errorCode;
 
-    public KitchenSinkException(String message, Throwable cause) {
+    @Builder
+    private KitchenSinkException(ErrorCode errorCode, String message, Throwable cause) {
         super(message, cause);
-    }
-
-    public KitchenSinkException(Throwable cause) {
-        super(cause);
+        this.errorCode = errorCode;
     }
 }
