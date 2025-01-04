@@ -79,7 +79,8 @@ public class AuthConfiguration {
     @Order(3)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .authorizeHttpRequests((authorize) -> authorize.anyRequest().authenticated())
+                .authorizeHttpRequests(authorize -> authorize.requestMatchers("/actuator/**").permitAll()
+                        .anyRequest().authenticated())
                 .formLogin(Customizer.withDefaults())
                 .build();
     }
@@ -114,7 +115,7 @@ public class AuthConfiguration {
 
     @Bean
     public JWKSource<SecurityContext> jwkSource(@Value("${app.jwt-private-key}") String jwtPrivateKey) throws JOSEException {
-        JWK jwk = RSAKey.parseFromPEMEncodedObjects(jwtPrivateKey);
+        JWK jwk = JWK.parseFromPEMEncodedObjects(jwtPrivateKey);
         return new ImmutableJWKSet<>(new JWKSet(jwk));
     }
 }
