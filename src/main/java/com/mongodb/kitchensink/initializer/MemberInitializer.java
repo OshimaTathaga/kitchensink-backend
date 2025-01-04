@@ -33,16 +33,25 @@ public class MemberInitializer {
                         .roles(List.of("ADMIN"))
                         .build();
 
-                Member user = Member
+                Member user1 = Member
                         .builder()
-                        .email("user@kitchensink.com")
+                        .email("user1@kitchensink.com")
                         .password(passwordEncoder.encode("password"))
-                        .name("KS Normal User")
+                        .name("KS Normal User 1")
                         .phoneNumber("+91XXXXXXXXXX")
                         .roles(List.of("USER"))
                         .build();
 
-                memberRepository.saveAll(List.of(admin, user));
+                Member user2 = Member
+                        .builder()
+                        .email("user2@kitchensink.com")
+                        .password(passwordEncoder.encode("password"))
+                        .name("KS Normal User 2")
+                        .phoneNumber("+91XXXXXXXXXX")
+                        .roles(List.of("USER"))
+                        .build();
+
+                memberRepository.saveAll(List.of(admin, user1, user2));
                 log.info("Bootstrapping Users Successful");
             }
         };

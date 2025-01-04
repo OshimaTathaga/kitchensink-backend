@@ -24,8 +24,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -47,7 +45,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @EnableMethodSecurity
 public class AuthConfiguration {
-    private final MemberService memberService;
 
     @Bean
     @Order(1)
@@ -96,16 +93,9 @@ public class AuthConfiguration {
     }
 
     @Bean
-    public DaoAuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder) {
+    public DaoAuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder, MemberService memberService) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(username -> {
-            try {
-                Member member = memberService.findByEmail(username);
-                return new AuthMember(member);
-            } catch (KitchenSinkException exception) {
-                throw new UsernameNotFoundException(exception.getMessage(), exception);
-            }
-        });
+        provider.setUserDetailsService(memberService);
         provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }
