@@ -2,7 +2,8 @@ package com.mongodb.kitchensink.config;
 
 import com.mongodb.kitchensink.service.MongoUserDetailService;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.*;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
@@ -79,8 +80,11 @@ public class AuthConfiguration {
     @Order(3)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .authorizeHttpRequests(authorize -> authorize.requestMatchers("/actuator/**").permitAll()
-                        .anyRequest().authenticated())
+                .authorizeHttpRequests(authorize ->
+                        authorize
+                                .requestMatchers("/actuator/**").permitAll()
+                                .anyRequest().authenticated()
+                )
                 .formLogin(Customizer.withDefaults())
                 .build();
     }

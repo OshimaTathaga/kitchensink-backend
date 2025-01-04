@@ -10,12 +10,10 @@ COPY src src
 
 RUN ./gradlew build -x test --info
 
+##################################################### final stage #####################################################
 FROM gcr.io/distroless/java21-debian12:debug-nonroot AS final
-USER appuser
 
-# Copy the executable from the "package" stage.
 COPY --from=builder app/build/libs/*.jar kitchen-sink.jar
 
 EXPOSE 8080
-
-CMD [ "kitchen-sink" ]
+CMD ["kitchen-sink"]

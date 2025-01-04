@@ -14,8 +14,6 @@ services:
       - ./build.gradle:/app/build.gradle
       - ./gradlew:/app/gradlew
       - ./settings.gradle:/app/settings.gradle
-    env_file:
-      - .env
     entrypoint:
       - ./gradlew
     command:
@@ -25,19 +23,14 @@ services:
       - "8080:8080"
     environment:
       GRADLE_USER_HOME: /gradle_cache
-      SPRING_DATA_MONGODB_HOST: mongo-db
-      SPRING_DATA_MONGODB_PASSWORD: mongo
-      SPRING_DATA_MONGODB_USERNAME: mongo
-      SPRING_DATA_MONGODB_PORT: 27017
-      SPRING_DATA_MONGODB_DATABASE: kitchensink
-      SPRING_DATA_MONGODB_AUTHENTICATION-DATABASE: admin
-      SPRING_DATA_MONGODB_AUTO-INDEX-CREATION: true
+      spring_data_mongodb_host: mongo-db
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
       retries: 3
       start_period: 10s
       timeout: 10s
+
   mongo-db:
     image: mongo:7.0
     container_name: mongo-db
