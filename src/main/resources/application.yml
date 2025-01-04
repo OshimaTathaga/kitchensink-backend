@@ -3,6 +3,15 @@ spring:
     default: local
   application:
     name: kitchensink
+  data:
+    mongodb:
+      host: localhost
+      password: mongo
+      username: mongo
+      port: 27017
+      database: kitchensink
+      authentication-database: admin
+      auto-index-creation: true
   # https://www.baeldung.com/spring-security-oauth-auth-server
   security:
     oauth2:
