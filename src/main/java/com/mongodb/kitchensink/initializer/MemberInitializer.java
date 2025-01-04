@@ -1,11 +1,12 @@
 package com.mongodb.kitchensink.initializer;
 
-import com.mongodb.kitchensink.document.User;
-import com.mongodb.kitchensink.repository.UserRepository;
+import com.mongodb.kitchensink.document.Member;
+import com.mongodb.kitchensink.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -14,25 +15,34 @@ import java.util.List;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class UserInitializer {
+@Profile("local")
+public class MemberInitializer {
     private final PasswordEncoder passwordEncoder;
 
     @Bean
-    public CommandLineRunner initializeUsers(UserRepository userRepository) {
+    public CommandLineRunner initializeUsers(MemberRepository memberRepository) {
         return args -> {
-            if (userRepository.count() == 0) {
+            if (memberRepository.count() == 0) {
                 log.info("Bootstrapping Users in the DB");
-                User admin = User.builder().username("admin")
+                Member admin = Member
+                        .builder()
+                        .email("admin@kitchensink.com")
                         .password(passwordEncoder.encode("password"))
+                        .name("KS Admin")
+                        .phoneNumber("+91XXXXXXXXXX")
                         .roles(List.of("ADMIN"))
                         .build();
 
-                User user = User.builder().username("user")
+                Member user = Member
+                        .builder()
+                        .email("user@kitchensink.com")
                         .password(passwordEncoder.encode("password"))
+                        .name("KS Normal User")
+                        .phoneNumber("+91XXXXXXXXXX")
                         .roles(List.of("USER"))
                         .build();
 
-                userRepository.saveAll(List.of(admin, user));
+                memberRepository.saveAll(List.of(admin, user));
                 log.info("Bootstrapping Users Successful");
             }
         };

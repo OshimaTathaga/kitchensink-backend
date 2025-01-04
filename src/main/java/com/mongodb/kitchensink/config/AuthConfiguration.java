@@ -1,6 +1,9 @@
 package com.mongodb.kitchensink.config;
 
-import com.mongodb.kitchensink.service.MongoUserDetailService;
+import com.mongodb.kitchensink.document.Member;
+import com.mongodb.kitchensink.error.KitchenSinkException;
+import com.mongodb.kitchensink.model.AuthMember;
+import com.mongodb.kitchensink.service.MemberService;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -21,6 +24,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
@@ -41,7 +47,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @EnableMethodSecurity
 public class AuthConfiguration {
-    private final MongoUserDetailService userDetailService;
+    private final MemberService memberService;
 
     @Bean
     @Order(1)
@@ -92,7 +98,14 @@ public class AuthConfiguration {
     @Bean
     public DaoAuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailService);
+        provider.setUserDetailsService(username -> {
+            try {
+                Member member = memberService.findByEmail(username);
+                return new AuthMember(member);
+            } catch (KitchenSinkException exception) {
+                throw new UsernameNotFoundException(exception.getMessage(), exception);
+            }
+        });
         provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }

@@ -46,6 +46,8 @@ services:
     restart: always
 
   mongo-ui:
+    depends_on:
+      - mongo-db
     image: mongo-express:1.0
     container_name: mongo-ui
     hostname: mongo-ui
