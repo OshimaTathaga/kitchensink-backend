@@ -1,13 +1,15 @@
 package com.mongodb.kitchensink.service;
 
 import com.mongodb.kitchensink.document.Member;
-import com.mongodb.kitchensink.error.ErrorCode;
 import com.mongodb.kitchensink.error.KitchenSinkException;
+import com.mongodb.kitchensink.mapper.MemberMapper;
 import com.mongodb.kitchensink.model.AuthMember;
 import com.mongodb.kitchensink.model.co.MemberCO;
+import com.mongodb.kitchensink.model.co.UpdateMemberCO;
 import com.mongodb.kitchensink.model.dto.MemberDTO;
 import com.mongodb.kitchensink.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -16,11 +18,14 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static com.mongodb.kitchensink.error.ErrorCode.NOT_FOUND;
+
 @Service
 @RequiredArgsConstructor
 public class MemberService implements UserDetailsService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MemberMapper memberMapper;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -35,7 +40,7 @@ public class MemberService implements UserDetailsService {
                 .orElseThrow(() ->
                         KitchenSinkException
                                 .builder()
-                                .errorCode(ErrorCode.NOT_FOUND)
+                                .errorCode(NOT_FOUND)
                                 .message("User with email '%s' not found".formatted(email))
                                 .build()
                 );
@@ -57,5 +62,18 @@ public class MemberService implements UserDetailsService {
         memberRepository.deleteByEmail(email);
     }
 
-
+    public MemberDTO update(UpdateMemberCO updateMemberCO) {
+        String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        return memberRepository.findByEmail(memberEmail)
+                .map(member -> {
+                    memberMapper.updateMember(updateMemberCO, member);
+                    return MemberDTO.from(memberRepository.save(member));
+                })
+                .orElseThrow(() -> KitchenSinkException
+                        .builder()
+                        .errorCode(NOT_FOUND)
+                        .message("User with email '%s' not found".formatted(memberEmail))
+                        .build()
+                );
+    }
 }

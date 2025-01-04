@@ -1,6 +1,7 @@
 package com.mongodb.kitchensink.controller;
 
 import com.mongodb.kitchensink.model.co.MemberCO;
+import com.mongodb.kitchensink.model.co.UpdateMemberCO;
 import com.mongodb.kitchensink.model.dto.MemberDTO;
 import com.mongodb.kitchensink.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,7 +11,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -47,5 +47,10 @@ public class MemberController {
         memberService.delete(email);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<MemberDTO> update(@RequestBody UpdateMemberCO updateMemberCO) {
+        return ResponseEntity.ok(memberService.update(updateMemberCO));
     }
 }
