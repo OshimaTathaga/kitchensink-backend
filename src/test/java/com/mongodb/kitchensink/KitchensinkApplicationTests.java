@@ -2,22 +2,16 @@ package com.mongodb.kitchensink;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import util.OAuthUtil;
 
-import java.security.NoSuchAlgorithmException;
-
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@ActiveProfiles("integrationTest")
 class KitchensinkApplicationTests {
 
     @Test
     void contextLoads() {
-        try {
-            OAuthUtil.getAuthorizationCode();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-
-
+        System.out.println(OAuthUtil.getAuthorizationToken());
     }
 
 }

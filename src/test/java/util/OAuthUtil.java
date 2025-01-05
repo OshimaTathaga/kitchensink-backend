@@ -1,47 +1,59 @@
 package util;
 
 import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import lombok.SneakyThrows;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Map;
-
-import org.springframework.http.HttpHeaders;
-
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class OAuthUtil {
-    public static final String CLIENT_ID = "members-client";
-    public static final String REDIRECT_URL = "http://localhost:8080/callback";
-    public static final String AUTH_URL = "http://localhost:8080/oauth2/authorize";
-    public static final String SCOPE = "api:members";
+    private static final String BASE_URI = "http://localhost:18080";
+    private static final String CLIENT_ID = "members-client";
+    private static final String REDIRECT_URL = BASE_URI + "/test-callback";
+    private static final String SCOPE = "api:members";
+    private static final Pattern CSRF_PATTERN = Pattern.compile("<input\\s+name=\"_csrf\"\\s+type=\"hidden\"\\s+value=\"([^\"]+)\"\\s*/>");
 
+    public static String getAuthorizationToken() {
+        Response csrfResponse = RestAssured.given()
+                .baseUri(BASE_URI)
+                .request()
+                .accept(ContentType.ANY)
+                .get("/login");
 
-    public static String getToken() {
-        return "";
-    }
+        String csrfToken = Optional.of(CSRF_PATTERN.matcher(csrfResponse.getBody().asString()))
+                .filter(Matcher::find)
+                .map(e -> e.group(1))
+                .orElseThrow(() -> new RuntimeException("Invalid CSRF response"));
 
-
-    public static String getAuthorizationCode() throws NoSuchAlgorithmException {
-        Response loginResponse = RestAssured
-                .given()
+        Response loginResponse = RestAssured.given()
+                .baseUri(BASE_URI)
+                .request()
+                .contentType(ContentType.fromContentType("application/x-www-form-urlencoded"))
                 .formParam("username", "admin@kitchensink.com")
                 .formParam("password", "password")
-                .post("http://localhost:8080/login");
-
-
+                .formParam("_csrf", csrfToken)
+                .cookies(csrfResponse.getCookies())
+                .post("/login");
 
         String codeVerifier = generateCodeVerifier();
         String codeChallenge = generateCodeChallenge(codeVerifier);
 
-        Response response = RestAssured
-                .given()
+        Response authorizationResponse = RestAssured.given()
+                .baseUri(BASE_URI)
+                .request()
+                .redirects()
+                .follow(false)
                 .queryParams(Map.of(
                         "response_type", "code",
                         "client_id", CLIENT_ID,
@@ -51,32 +63,42 @@ public class OAuthUtil {
                         "code_challenge_method", "S256"
                 ))
                 .cookies(loginResponse.getCookies())
-                .spec(new RequestSpecBuilder().setBaseUri(AUTH_URL).build())
-                .get();
-        return null;
+                .get("/oauth2/authorize");
+
+        String code = URI.create(authorizationResponse.getHeader("Location")).getQuery().replace("code=", "");
+
+        Response tokenResponse = RestAssured.given()
+                .baseUri(BASE_URI)
+                .request()
+                .contentType(ContentType.fromContentType("application/x-www-form-urlencoded"))
+                .formParam("grant_type", "authorization_code")
+                .formParam("code", code)
+                .formParam("redirect_uri", REDIRECT_URL)
+                .formParam("code_verifier", codeVerifier)
+                .formParam("client_id", CLIENT_ID)
+                .post("/oauth2/token");
+
+        String accessToken = tokenResponse.getBody().path("access_token");
+        String tokenType = tokenResponse.getBody().path("token_type");
+
+        return "%s %s".formatted(tokenType, accessToken);
     }
 
-    public static String generateCodeVerifier() {
+    private static String generateCodeVerifier() {
         SecureRandom random = new SecureRandom();
         byte[] codeVerifier = new byte[32];
         random.nextBytes(codeVerifier);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(codeVerifier);
     }
 
-    public static String generateCodeChallenge(String codeVerifier) throws NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+    private static String generateCodeChallenge(String codeVerifier) {
+        MessageDigest digest;
+        try {
+            digest = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
         byte[] hash = digest.digest(codeVerifier.getBytes(StandardCharsets.US_ASCII));
         return Base64.getUrlEncoder().withoutPadding().encodeToString(hash);
     }
-
-    private static HttpHeaders createHeaders(final String username, final String password) {
-        HttpHeaders headers = new HttpHeaders();
-        String auth = username + ":" + password;
-        byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.US_ASCII));
-        String encodedAuth2 = "Basic " + new String(encodedAuth);
-        headers.set(AUTHORIZATION, encodedAuth2);
-        return headers;
-    }
-
-
 }
