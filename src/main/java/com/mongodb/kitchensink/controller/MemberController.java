@@ -41,16 +41,17 @@ public class MemberController {
         return ResponseEntity.created(userByEmail).body(saveMember);
     }
 
+    @PatchMapping("/{email}")
+    @PreAuthorize("hasRole('ADMIN') or authentication.name.equals(#email)")
+    public ResponseEntity<MemberDTO> update(@PathVariable String email, @RequestBody UpdateMemberCO updateMemberCO) {
+        return ResponseEntity.ok(memberService.update(updateMemberCO, email));
+    }
+
     @DeleteMapping("/{email}")
     @PreAuthorize("hasRole('ADMIN') or authentication.name.equals(#email)")
     public ResponseEntity<Void> deleteMember(@PathVariable String email) {
         memberService.delete(email);
 
         return ResponseEntity.noContent().build();
-    }
-
-    @PatchMapping("/me")
-    public ResponseEntity<MemberDTO> update(@RequestBody UpdateMemberCO updateMemberCO) {
-        return ResponseEntity.ok(memberService.update(updateMemberCO));
     }
 }

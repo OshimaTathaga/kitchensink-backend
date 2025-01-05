@@ -62,17 +62,17 @@ public class MemberService implements UserDetailsService {
         memberRepository.deleteByEmail(email);
     }
 
-    public MemberDTO update(UpdateMemberCO updateMemberCO) {
-        String memberEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        return memberRepository.findByEmail(memberEmail)
+    public MemberDTO update(UpdateMemberCO updateMemberCO, String email) {
+        return memberRepository.findByEmail(email)
                 .map(member -> {
                     memberMapper.updateMember(updateMemberCO, member);
-                    return MemberDTO.from(memberRepository.save(member));
+                    return memberRepository.save(member);
                 })
+                .map(MemberDTO::from)
                 .orElseThrow(() -> KitchenSinkException
                         .builder()
                         .errorCode(NOT_FOUND)
-                        .message("User with email '%s' not found".formatted(memberEmail))
+                        .message("User with email '%s' not found".formatted(email))
                         .build()
                 );
     }
