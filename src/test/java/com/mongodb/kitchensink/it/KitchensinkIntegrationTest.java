@@ -3,10 +3,12 @@ package com.mongodb.kitchensink.it;
 import com.mongodb.kitchensink.document.Member;
 import com.mongodb.kitchensink.it.helper.Constants;
 import com.mongodb.kitchensink.it.helper.OAuthUtil;
+import com.mongodb.kitchensink.model.dto.MemberDTO;
 import com.mongodb.kitchensink.repository.MemberRepository;
 import io.restassured.RestAssured;
-import org.hamcrest.Matchers;
+import io.restassured.common.mapper.TypeRef;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.List;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -48,6 +51,7 @@ class KitchensinkIntegrationTest {
 
     @Autowired
     private MemberRepository memberRepository;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -56,8 +60,9 @@ class KitchensinkIntegrationTest {
         memberRepository.deleteAll();
     }
 
-    @Test
-    void shouldGetAllMembersForAdmin() {
+
+    @BeforeEach
+    void setup() {
         Member admin = Member
                 .builder()
                 .email("admin@kitchensink.com")
@@ -76,19 +81,40 @@ class KitchensinkIntegrationTest {
                 .build();
         memberRepository.saveAll(List.of(admin, someUser));
 
+    }
+
+    @Test
+    void shouldGetAllMembersForAdmin() {
         String authorizationHeaderValue = OAuthUtil.getAuthorizationToken("admin@kitchensink.com", "admin-password");
+        List<MemberDTO> response = RestAssured.given()
+                .baseUri(Constants.BASE_URI)
+                .header("Authorization", authorizationHeaderValue)
+                .get("/api/members")
+                .then()
+                .statusCode(200)
+                .extract()
+                .as(new TypeRef<>() {
+                });
+
+        assertThat(response)
+                .hasSize(2)
+                .extracting(MemberDTO::email)
+                .containsExactlyInAnyOrder(
+                        "admin@kitchensink.com",
+                        "user@kitchensink.com"
+                );
+    }
+
+    @Test
+    void shouldGetAccessDeniedForNonAdminWhenListingMembers() {
+        String authorizationHeaderValue = OAuthUtil.getAuthorizationToken("user@kitchensink.com", "user-password");
 
         RestAssured.given()
                 .baseUri(Constants.BASE_URI)
                 .header("Authorization", authorizationHeaderValue)
                 .get("/api/members")
                 .then()
-                .assertThat()
-                .statusCode(200)
-                .and()
-                .body(Matchers.hasSize(2));
-//                .body(Matchers.arrayContaining(Matchers.hasProperty("email", Matchers.equalTo("admin@kitchensink.com"))))
-//                .body(Matchers.arrayContaining(Matchers.hasProperty("email", Matchers.equalTo("user@kitchensink.com"))));
+                .statusCode(403);
     }
 
 }
