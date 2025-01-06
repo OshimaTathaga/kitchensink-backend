@@ -8,7 +8,7 @@
 out
 build
 
-README.md
+docs
 
 .dockerignore
 Dockerfile
