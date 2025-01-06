@@ -39,8 +39,6 @@ import static org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD;
 @Testcontainers
 @Execution(SAME_THREAD)
 class KitchensinkIntegrationTest {
-
-    @Container
     private static final GenericContainer<?> mongoDBContainer = new GenericContainer<>("mongo:7.0")
             .withEnv(Map.of(
                     "MONGO_INITDB_DATABASE", "kitchensink",
@@ -49,6 +47,10 @@ class KitchensinkIntegrationTest {
             ))
             .withExposedPorts(27017)
             .waitingFor(Wait.forLogMessage("(?i).*Waiting for connections*.*", 1));
+
+    static {
+        mongoDBContainer.start();
+    }
 
     @DynamicPropertySource
     private static void neo4jProperties(DynamicPropertyRegistry registry) {
