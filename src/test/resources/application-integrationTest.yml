@@ -7,7 +7,7 @@ spring:
       host: localhost
       password: mongo
       username: mongo
-      port: 27017
+      port: 27017 # Will be overridden by integration test dynamic property loader
       database: kitchensink
       authentication-database: admin
   security:

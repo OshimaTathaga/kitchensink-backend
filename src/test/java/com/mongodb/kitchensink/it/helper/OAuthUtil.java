@@ -1,9 +1,8 @@
-package util;
+package com.mongodb.kitchensink.it.helper;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
-import lombok.SneakyThrows;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -18,15 +17,14 @@ import java.util.regex.Pattern;
 
 
 public class OAuthUtil {
-    private static final String BASE_URI = "http://localhost:18080";
     private static final String CLIENT_ID = "members-client";
-    private static final String REDIRECT_URL = BASE_URI + "/test-callback";
+    private static final String REDIRECT_URL = Constants.BASE_URI + "/test-callback";
     private static final String SCOPE = "api:members";
     private static final Pattern CSRF_PATTERN = Pattern.compile("<input\\s+name=\"_csrf\"\\s+type=\"hidden\"\\s+value=\"([^\"]+)\"\\s*/>");
 
-    public static String getAuthorizationToken() {
+    public static String getAuthorizationToken(String username, String password) {
         Response csrfResponse = RestAssured.given()
-                .baseUri(BASE_URI)
+                .baseUri(Constants.BASE_URI)
                 .request()
                 .accept(ContentType.ANY)
                 .get("/login");
@@ -37,11 +35,11 @@ public class OAuthUtil {
                 .orElseThrow(() -> new RuntimeException("Invalid CSRF response"));
 
         Response loginResponse = RestAssured.given()
-                .baseUri(BASE_URI)
+                .baseUri(Constants.BASE_URI)
                 .request()
                 .contentType(ContentType.fromContentType("application/x-www-form-urlencoded"))
-                .formParam("username", "admin@kitchensink.com")
-                .formParam("password", "password")
+                .formParam("username", username)
+                .formParam("password", password)
                 .formParam("_csrf", csrfToken)
                 .cookies(csrfResponse.getCookies())
                 .post("/login");
@@ -50,7 +48,7 @@ public class OAuthUtil {
         String codeChallenge = generateCodeChallenge(codeVerifier);
 
         Response authorizationResponse = RestAssured.given()
-                .baseUri(BASE_URI)
+                .baseUri(Constants.BASE_URI)
                 .request()
                 .redirects()
                 .follow(false)
@@ -68,7 +66,7 @@ public class OAuthUtil {
         String code = URI.create(authorizationResponse.getHeader("Location")).getQuery().replace("code=", "");
 
         Response tokenResponse = RestAssured.given()
-                .baseUri(BASE_URI)
+                .baseUri(Constants.BASE_URI)
                 .request()
                 .contentType(ContentType.fromContentType("application/x-www-form-urlencoded"))
                 .formParam("grant_type", "authorization_code")
