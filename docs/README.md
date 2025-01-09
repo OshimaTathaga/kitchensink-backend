@@ -11,7 +11,7 @@ This repository provides a simple and straightforward approach to running the Ki
 docker-compose up -d
 ```
 
-Once the application is running, you can access it locally at: [http://localhost:8080](http://localhost:8080)
+Once the application is running, you can access it locally at: [http://localhost:9000](http://localhost:9000)
 
 ## OAuth2 Login Flow Using Postman
 

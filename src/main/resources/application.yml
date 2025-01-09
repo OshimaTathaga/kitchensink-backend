@@ -1,3 +1,6 @@
+server:
+  port: 9000
+
 spring:
   profiles:
     default: local
@@ -27,8 +30,8 @@ spring:
                 - "authorization_code"
                 - "refresh_token"
               redirect-uris:
-                - "http://localhost:8080/login/oauth2/code/members-client-oidc" # Frontend URL
-                - "http://localhost:8080/authorized" # Extra Frontend URL if needed
+                - "http://localhost:9000/login/oauth2/code/members-client-oidc" # Frontend URL
+                - "http://localhost:9000/authorized" # Extra Frontend URL if needed
                 - "https://oauth.pstmn.io/v1/callback" # For Postman Testing
               post-logout-redirect-uris:
                 - "http://localhost:8080/" # Frontend Post Logout URL
@@ -41,10 +44,10 @@ spring:
             token:
               access-token-time-to-live: 3600000
               refresh-token-time-to-live: 18000000
-        issuer: http://localhost:8080/
+        issuer: http://localhost:9000/
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/
+          issuer-uri: http://localhost:9000/
 
 app:
   jwt-private-key: | # Command to generate "openssl genrsa 2048"
@@ -85,10 +88,3 @@ management:
 logging:
   level:
     root: info
-    org:
-      springframework:
-        security: debug
-        data:
-          mongodb:
-            core:
-              MongoTemplate: debug

@@ -20,12 +20,12 @@ services:
       - bootRun
       - --info
     ports:
-      - "8080:8080"
+      - "9000:9000"
     environment:
       GRADLE_USER_HOME: /gradle_cache
       spring_data_mongodb_host: mongo-db
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/actuator/health"]
       interval: 30s
       retries: 3
       start_period: 10s
