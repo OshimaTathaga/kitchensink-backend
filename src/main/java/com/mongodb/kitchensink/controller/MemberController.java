@@ -36,7 +36,6 @@ public class MemberController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MemberDTO> createMember(@RequestBody @Valid MemberCO memberCO, HttpServletRequest request) {
         MemberDTO saveMember = memberService.save(memberCO);
         URI userByEmail = URI.create(request.getRequestURL().append("/").append(saveMember.email()).toString());
@@ -48,6 +47,12 @@ public class MemberController {
     @PreAuthorize("hasRole('ADMIN') or authentication.name.equals(#email)")
     public ResponseEntity<MemberDTO> update(@PathVariable @Valid @Email(regexp = EMAIL_VALIDATION_REGEX) String email, @RequestBody UpdateMemberCO updateMemberCO) {
         return ResponseEntity.ok(memberService.update(updateMemberCO, email));
+    }
+
+    @PutMapping("/{email}/roles")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MemberDTO> updateRoles(@PathVariable @Valid @Email(regexp = EMAIL_VALIDATION_REGEX) String email, @RequestBody List<String> roles) {
+        return ResponseEntity.ok(memberService.updateRoles(roles, email));
     }
 
     @DeleteMapping("/{email}")

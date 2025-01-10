@@ -7,7 +7,6 @@ import com.mongodb.kitchensink.model.co.MemberCO;
 import com.mongodb.kitchensink.model.co.UpdateMemberCO;
 import com.mongodb.kitchensink.model.dto.MemberDTO;
 import com.mongodb.kitchensink.service.MemberService;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,7 +89,6 @@ class MemberControllerTest {
                 .name("Some Member")
                 .password("strong-password")
                 .phoneNumber("+91XXXXXXXXXX")
-                .roles(List.of("SOME_ROLE"))
                 .build();
         MemberDTO memberDTO = MemberDTO.builder()
                 .id("1a")
@@ -115,8 +113,8 @@ class MemberControllerTest {
                 .andExpect(jsonPath("$.roles[0]").value("SOME_ROLE"));
 
         assertThat(captor.getValue())
-                .extracting(MemberCO::email, MemberCO::name, MemberCO::phoneNumber, MemberCO::password, MemberCO::roles)
-                .containsExactly("member@example.com", "Some Member", "+91XXXXXXXXXX", "strong-password", List.of("SOME_ROLE"));
+                .extracting(MemberCO::email, MemberCO::name, MemberCO::phoneNumber, MemberCO::password)
+                .containsExactly("member@example.com", "Some Member", "+91XXXXXXXXXX", "strong-password");
     }
 
     @Test

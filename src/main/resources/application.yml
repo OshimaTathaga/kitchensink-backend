@@ -50,6 +50,7 @@ spring:
           issuer-uri: http://localhost:9000/
 
 app:
+  default-user-role: USER
   jwt-private-key: | # Command to generate "openssl genrsa 2048"
     -----BEGIN PRIVATE KEY-----
     MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDPKORMX4B47pn6

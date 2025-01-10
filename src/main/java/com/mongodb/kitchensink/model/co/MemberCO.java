@@ -12,8 +12,8 @@ import java.util.List;
 import static com.mongodb.kitchensink.constant.KitchensinkConstant.EMAIL_VALIDATION_REGEX;
 
 @Builder
-public record MemberCO(@Email(regexp = EMAIL_VALIDATION_REGEX) @NotEmpty String email, @NotBlank String name, @NotBlank String password, @NotEmpty List<@NotBlank String> roles, String phoneNumber) {
-    public Member to(PasswordEncoder passwordEncoder) {
+public record MemberCO(@Email(regexp = EMAIL_VALIDATION_REGEX) @NotEmpty String email, @NotBlank String name, @NotBlank String password, String phoneNumber) {
+    public Member to(PasswordEncoder passwordEncoder, List<String> roles) {
         return Member
                 .builder()
                 .email(email)

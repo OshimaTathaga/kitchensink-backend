@@ -9,6 +9,7 @@ import com.mongodb.kitchensink.model.co.UpdateMemberCO;
 import com.mongodb.kitchensink.model.dto.MemberDTO;
 import com.mongodb.kitchensink.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -25,6 +26,8 @@ public class MemberService implements UserDetailsService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final MemberMapper memberMapper;
+    @Value("${app.default-user-role}")
+    private final String defaultUserRole;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -53,7 +56,7 @@ public class MemberService implements UserDetailsService {
     }
 
     public MemberDTO save(MemberCO memberCO) {
-        Member savedMember = memberRepository.save(memberCO.to(passwordEncoder));
+        Member savedMember = memberRepository.save(memberCO.to(passwordEncoder, List.of(defaultUserRole)));
         return MemberDTO.from(savedMember);
     }
 
@@ -65,6 +68,21 @@ public class MemberService implements UserDetailsService {
         return memberRepository.findByEmail(email)
                 .map(member -> {
                     memberMapper.updateMember(updateMemberCO, member);
+                    return memberRepository.save(member);
+                })
+                .map(MemberDTO::from)
+                .orElseThrow(() -> KitchenSinkException
+                        .builder()
+                        .errorCode(NOT_FOUND)
+                        .message("User with email '%s' not found".formatted(email))
+                        .build()
+                );
+    }
+
+    public MemberDTO updateRoles(List<String> roles, String email) {
+        return memberRepository.findByEmail(email)
+                .map(member -> {
+                    member.setRoles(roles);
                     return memberRepository.save(member);
                 })
                 .map(MemberDTO::from)

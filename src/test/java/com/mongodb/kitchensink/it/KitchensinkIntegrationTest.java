@@ -24,7 +24,6 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
@@ -197,20 +196,16 @@ class KitchensinkIntegrationTest {
     }
 
     @Test
-    void shouldSuccessfullyCreateMemberByAdminUser() {
-        String authorizationHeaderValue = OAuthUtil.getAuthorizationToken("admin@kitchensink.com", "admin-password");
-
+    void shouldSuccessfullyCreateMember() {
         MemberCO memberToBeSaved = MemberCO.builder()
                 .email("user2@kitchensink.com")
                 .password(passwordEncoder.encode("user2-password"))
                 .name("KS Some User 2")
                 .phoneNumber("+91XXXXXXXXXX")
-                .roles(List.of("USER"))
                 .build();
 
         MemberDTO savedMemberResponse = RestAssured.given()
                 .baseUri(Constants.BASE_URI)
-                .header("Authorization", authorizationHeaderValue)
                 .contentType(ContentType.JSON)
                 .body(memberToBeSaved)
                 .post("/api/members")
@@ -221,31 +216,8 @@ class KitchensinkIntegrationTest {
                 });
 
         assertEquals("user2@kitchensink.com", savedMemberResponse.email());
+        assertEquals(List.of("USER"), savedMemberResponse.roles());
         assertEquals(4, memberRepository.count());
-    }
-
-    @Test
-    void shouldGetAccessDeniedForNonAdminWhenCreatingMember() {
-        String authorizationHeaderValue = OAuthUtil.getAuthorizationToken("user@kitchensink.com", "user-password");
-
-        MemberCO memberToBeSaved = MemberCO.builder()
-                .email("user2@kitchensink.com")
-                .password(passwordEncoder.encode("user2-password"))
-                .name("KS Some User 2")
-                .phoneNumber("+91XXXXXXXXXX")
-                .roles(List.of("USER"))
-                .build();
-
-        RestAssured.given()
-                .baseUri(Constants.BASE_URI)
-                .header("Authorization", authorizationHeaderValue)
-                .contentType(ContentType.JSON)
-                .body(memberToBeSaved)
-                .post("/api/members")
-                .then()
-                .statusCode(403);
-
-        assertEquals(3, memberRepository.count());
     }
 
     @CsvSource({

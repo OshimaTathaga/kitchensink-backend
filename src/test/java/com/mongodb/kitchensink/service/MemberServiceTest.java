@@ -12,9 +12,7 @@ import com.mongodb.kitchensink.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -39,10 +37,10 @@ class MemberServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
-    @Spy
     private MemberMapper memberMapper = new MemberMapperImpl();
 
-    @InjectMocks
+    private String defaultUserRole = "ROLE_USER";
+
     private MemberService memberService;
 
     private Member member;
@@ -51,6 +49,8 @@ class MemberServiceTest {
 
     @BeforeEach
     void setUp() {
+        memberService = new MemberService(memberRepository, passwordEncoder, memberMapper, defaultUserRole);
+
         member = Member.builder()
                 .id("1")
                 .email("test@example.com")
@@ -63,7 +63,6 @@ class MemberServiceTest {
                 .email("test@example.com")
                 .name("Test User")
                 .password("password")
-                .roles(List.of("ROLE_USER"))
                 .phoneNumber("1234567890")
                 .build();
 
@@ -142,6 +141,20 @@ class MemberServiceTest {
 
         assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND);
         assertThat(exception.getMessage()).contains("User with email 'notfound@example.com' not found");
+    }
+
+    @Test
+    void shouldUpdateRoles() {
+        String email = "test@example.com";
+        Member clonedMember = SerializationUtils.clone(member);
+        when(memberRepository.findByEmail(email)).thenReturn(Optional.of(clonedMember));
+        when(memberRepository.save(any(Member.class))).thenReturn(clonedMember);
+
+        MemberDTO result = memberService.updateRoles(List.of("ROLE_ADMIN"), email);
+
+        assertThat(result).isNotNull();
+        assertThat(result.email()).isEqualTo("test@example.com");
+        assertThat(result.roles()).isEqualTo(List.of("ROLE_ADMIN"));
     }
 
     @Test
