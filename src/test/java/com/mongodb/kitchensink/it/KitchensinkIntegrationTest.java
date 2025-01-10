@@ -2,7 +2,7 @@ package com.mongodb.kitchensink.it;
 
 import com.mongodb.kitchensink.document.Member;
 import com.mongodb.kitchensink.it.helper.Constants;
-import com.mongodb.kitchensink.it.helper.OAuthUtil;
+import com.mongodb.kitchensink.it.helper.TokenUtil;
 import com.mongodb.kitchensink.model.co.MemberCO;
 import com.mongodb.kitchensink.model.co.UpdateMemberCO;
 import com.mongodb.kitchensink.model.dto.MemberDTO;
@@ -102,7 +102,7 @@ class KitchensinkIntegrationTest {
 
     @Test
     void shouldGetAllMembersForAdmin() {
-        String authorizationHeaderValue = OAuthUtil.getAuthorizationToken("admin@kitchensink.com", "admin-password");
+        String authorizationHeaderValue = TokenUtil.getAuthorizationToken("admin@kitchensink.com", "admin-password");
         List<MemberDTO> response = RestAssured.given()
                 .baseUri(Constants.BASE_URI)
                 .header("Authorization", authorizationHeaderValue)
@@ -125,7 +125,7 @@ class KitchensinkIntegrationTest {
 
     @Test
     void shouldGetAccessDeniedForNonAdminWhenListingMembers() {
-        String authorizationHeaderValue = OAuthUtil.getAuthorizationToken("user@kitchensink.com", "user-password");
+        String authorizationHeaderValue = TokenUtil.getAuthorizationToken("user@kitchensink.com", "user-password");
 
         RestAssured.given()
                 .baseUri(Constants.BASE_URI)
@@ -137,7 +137,7 @@ class KitchensinkIntegrationTest {
 
     @Test
     void shouldReturnMemberByEmailForAdmin() {
-        String authorizationHeaderValue = OAuthUtil.getAuthorizationToken("admin@kitchensink.com", "admin-password");
+        String authorizationHeaderValue = TokenUtil.getAuthorizationToken("admin@kitchensink.com", "admin-password");
         String expectedEmail = "user@kitchensink.com";
         MemberDTO response = RestAssured.given()
                 .baseUri(Constants.BASE_URI)
@@ -154,7 +154,7 @@ class KitchensinkIntegrationTest {
 
     @Test
     void shouldReturnMemberByEmailForSelf() {
-        String authorizationHeaderValue = OAuthUtil.getAuthorizationToken("user@kitchensink.com", "user-password");
+        String authorizationHeaderValue = TokenUtil.getAuthorizationToken("user@kitchensink.com", "user-password");
         String expectedEmail = "user@kitchensink.com";
         MemberDTO response = RestAssured.given()
                 .baseUri(Constants.BASE_URI)
@@ -185,7 +185,7 @@ class KitchensinkIntegrationTest {
         String emailOfMemberToBeListed = "user2@kitchensink.com";
 
 
-        String authorizationHeaderValue = OAuthUtil.getAuthorizationToken("user@kitchensink.com", "user-password");
+        String authorizationHeaderValue = TokenUtil.getAuthorizationToken("user@kitchensink.com", "user-password");
 
         RestAssured.given()
                 .baseUri(Constants.BASE_URI)
@@ -226,7 +226,7 @@ class KitchensinkIntegrationTest {
     })
     @ParameterizedTest
     void shouldSuccessfullyUpdateMemberByAuthorisedMembers(String authorisedMemberEmail, String authorisedMemberPassword) {
-        String authorizationHeaderValue = OAuthUtil.getAuthorizationToken(authorisedMemberEmail, authorisedMemberPassword);
+        String authorizationHeaderValue = TokenUtil.getAuthorizationToken(authorisedMemberEmail, authorisedMemberPassword);
         String expectedUpdatedName = "KS Some Other User Updated";
         String emailOfUpdatedMember = "user@kitchensink.com";
 
@@ -256,7 +256,7 @@ class KitchensinkIntegrationTest {
     })
     @ParameterizedTest
     void shouldGetAccessDeniedWhenUpdatingMemberByUnAuthorisedMember(String unauthorisedMemberEmail, String unauthorisedMemberPassword) {
-        String authorizationHeaderValue = OAuthUtil.getAuthorizationToken(unauthorisedMemberEmail, unauthorisedMemberPassword);
+        String authorizationHeaderValue = TokenUtil.getAuthorizationToken(unauthorisedMemberEmail, unauthorisedMemberPassword);
         String expectedUpdatedName = "KS Some Other User 2 Updated";
         String emailOfUpdatedMember = "user2@kitchensink.com";
 
@@ -293,7 +293,7 @@ class KitchensinkIntegrationTest {
     })
     @ParameterizedTest
     void shouldSuccessfullyDeleteMemberByAuthorisedMembers(String authorisedMemberEmail, String authorisedMemberPassword) {
-        String authorizationHeaderValue = OAuthUtil.getAuthorizationToken(authorisedMemberEmail, authorisedMemberPassword);
+        String authorizationHeaderValue = TokenUtil.getAuthorizationToken(authorisedMemberEmail, authorisedMemberPassword);
         String emailOfDeletedMember = "user@kitchensink.com";
 
 
@@ -314,7 +314,7 @@ class KitchensinkIntegrationTest {
     })
     @ParameterizedTest
     void shouldGetAccessDeniedWhenDeletingMemberByUnAuthorisedMember(String unauthorisedMemberEmail, String unauthorisedMemberPassword) {
-        String authorizationHeaderValue = OAuthUtil.getAuthorizationToken(unauthorisedMemberEmail, unauthorisedMemberPassword);
+        String authorizationHeaderValue = TokenUtil.getAuthorizationToken(unauthorisedMemberEmail, unauthorisedMemberPassword);
         String emailOfDeletedMember = "admin@kitchensink.com";
 
 

@@ -1,5 +1,6 @@
 package com.mongodb.kitchensink.service;
 
+import com.mongodb.kitchensink.config.AppConfigProperties;
 import com.mongodb.kitchensink.document.Member;
 import com.mongodb.kitchensink.error.ErrorCode;
 import com.mongodb.kitchensink.error.KitchenSinkException;
@@ -49,7 +50,7 @@ class MemberServiceTest {
 
     @BeforeEach
     void setUp() {
-        memberService = new MemberService(memberRepository, passwordEncoder, memberMapper, defaultUserRole);
+        memberService = new MemberService(memberRepository, passwordEncoder, memberMapper, new AppConfigProperties(List.of(defaultUserRole), null, null));
 
         member = Member.builder()
                 .id("1")

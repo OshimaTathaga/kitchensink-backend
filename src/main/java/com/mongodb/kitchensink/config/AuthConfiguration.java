@@ -1,86 +1,59 @@
 package com.mongodb.kitchensink.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.kitchensink.error.ErrorCode;
+import com.mongodb.kitchensink.error.KitchenSinkException;
 import com.mongodb.kitchensink.error.RestExceptionHandling;
+import com.mongodb.kitchensink.service.JwtService;
 import com.mongodb.kitchensink.service.MemberService;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.SecurityContext;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
-import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
-import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
-import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
-import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.List;
 
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 @EnableMethodSecurity
+@EnableConfigurationProperties(AppConfigProperties.class)
 public class AuthConfiguration {
 
     private final RestExceptionHandling restExceptionHandling;
+    private final AppConfigProperties appConfigProperties;
+    private final ObjectMapper objectMapper;
 
     @Bean
     @Order(1)
-    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http, AuthenticationProvider authenticationProvider) throws Exception {
-        OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = OAuth2AuthorizationServerConfigurer.authorizationServer();
-
-        return http
-                .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
-                .with(authorizationServerConfigurer, authorizationServer -> authorizationServer.oidc(Customizer.withDefaults()))
-                .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
-                .authenticationProvider(authenticationProvider)
-                .exceptionHandling(customizer -> customizer
-                        .defaultAuthenticationEntryPointFor(
-                                new LoginUrlAuthenticationEntryPoint("/login"),
-                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
-                        )
-                )
-                .build();
-    }
-
-    @Bean
-    @Order(2)
-    public SecurityFilterChain jwtFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain jwtFilterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
         return http
                 .securityMatcher("/api/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize ->
                         authorize
                                 .requestMatchers(HttpMethod.POST, "/api/members").anonymous()
-                                .anyRequest().hasAuthority("SCOPE_api:members")
+                                .anyRequest().authenticated()
                 )
-                // Ignoring the session cookie
                 .sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .oauth2ResourceServer(resourceServer -> resourceServer.jwt(jwtTokenCustomizer -> jwtTokenCustomizer.jwtAuthenticationConverter(new JwtAuthenticationConverter())))
+                .addFilterBefore(jwtFilter, AuthorizationFilter.class)
                 .exceptionHandling(customizer -> customizer
                         .authenticationEntryPoint((request, response, authException) -> restExceptionHandling.setErrorResponse(response, authException, ErrorCode.UNAUTHENTICATED))
                         .accessDeniedHandler((request, response, authException) -> restExceptionHandling.setErrorResponse(response, authException, ErrorCode.UNAUTHORIZED))
@@ -89,8 +62,8 @@ public class AuthConfiguration {
     }
 
     @Bean
-    @Order(3)
-    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+    @Order(2)
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, JwtService jwtService) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize ->
@@ -98,7 +71,19 @@ public class AuthConfiguration {
                                 .requestMatchers("/actuator/**").permitAll()
                                 .anyRequest().authenticated()
                 )
-                .formLogin(Customizer.withDefaults())
+                .formLogin(customizer -> customizer
+                        .successHandler((request, response, authentication) -> {
+                            try {
+                                response.setStatus(HttpServletResponse.SC_OK);
+                                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                                JwtService.JwtTokenResponse value = jwtService.generateJwtToken(authentication);
+                                objectMapper.writeValue(response.getWriter(), value);
+                            } catch (KitchenSinkException e) {
+                                restExceptionHandling.setErrorResponse(response, e);
+                            }
+                        })
+                        .failureHandler((request, response, exception) -> restExceptionHandling.setErrorResponse(response, exception, ErrorCode.UNAUTHENTICATED))
+                )
                 .build();
     }
 
@@ -116,23 +101,12 @@ public class AuthConfiguration {
     }
 
     @Bean
-    public OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer() {
-        return (context) -> {
-            if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
-                context.getClaims().claims((claims) -> {
-                    Set<String> roles = AuthorityUtils.authorityListToSet(context.getPrincipal().getAuthorities())
-                            .stream()
-                            .map(c -> c.replaceFirst("^ROLE_", ""))
-                            .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
-                    claims.put("roles", roles);
-                });
-            }
-        };
-    }
-
-    @Bean
-    public JWKSource<SecurityContext> jwkSource(@Value("${app.jwt-private-key}") String jwtPrivateKey) throws JOSEException {
-        JWK jwk = JWK.parseFromPEMEncodedObjects(jwtPrivateKey);
-        return new ImmutableJWKSet<>(new JWKSet(jwk));
+    public UrlBasedCorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(appConfigProperties.allowedOrigins());
+        configuration.setAllowedMethods(List.of("*"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

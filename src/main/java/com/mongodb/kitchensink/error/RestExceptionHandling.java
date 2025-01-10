@@ -20,6 +20,18 @@ public class RestExceptionHandling {
         this.setErrorResponse(response, null, errorCode, message);
     }
 
+    public void setErrorResponse(HttpServletResponse response, KitchenSinkException kitchenSinkException) throws IOException {
+        log.warn(kitchenSinkException.getMessage(), kitchenSinkException);
+        AppError error = AppError.builder()
+                .code(kitchenSinkException.getErrorCode())
+                .message(kitchenSinkException.getMessage())
+                .build();
+
+        response.setStatus(kitchenSinkException.getErrorCode().getHttpCode());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        objectMapper.writeValue(response.getWriter(), error);
+    }
+
     public void setErrorResponse(HttpServletResponse response, Throwable throwable, ErrorCode errorCode) throws IOException {
         this.setErrorResponse(response, throwable, errorCode, throwable.getMessage());
     }

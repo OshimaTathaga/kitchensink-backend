@@ -1,5 +1,6 @@
 package com.mongodb.kitchensink.service;
 
+import com.mongodb.kitchensink.config.AppConfigProperties;
 import com.mongodb.kitchensink.document.Member;
 import com.mongodb.kitchensink.error.KitchenSinkException;
 import com.mongodb.kitchensink.mapper.MemberMapper;
@@ -9,7 +10,6 @@ import com.mongodb.kitchensink.model.co.UpdateMemberCO;
 import com.mongodb.kitchensink.model.dto.MemberDTO;
 import com.mongodb.kitchensink.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -26,8 +26,7 @@ public class MemberService implements UserDetailsService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final MemberMapper memberMapper;
-    @Value("${app.default-user-role}")
-    private final String defaultUserRole;
+    private final AppConfigProperties appConfigProperties;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -56,7 +55,7 @@ public class MemberService implements UserDetailsService {
     }
 
     public MemberDTO save(MemberCO memberCO) {
-        Member savedMember = memberRepository.save(memberCO.to(passwordEncoder, List.of(defaultUserRole)));
+        Member savedMember = memberRepository.save(memberCO.to(passwordEncoder, appConfigProperties.defaultUserRoles()));
         return MemberDTO.from(savedMember);
     }
 
