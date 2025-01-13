@@ -6,6 +6,7 @@ import com.mongodb.kitchensink.error.KitchenSinkException;
 import com.mongodb.kitchensink.model.co.MemberCO;
 import com.mongodb.kitchensink.model.co.UpdateMemberCO;
 import com.mongodb.kitchensink.model.dto.MemberDTO;
+import com.mongodb.kitchensink.service.JwtService;
 import com.mongodb.kitchensink.service.MemberService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -35,6 +36,9 @@ class MemberControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockitoBean
+    private JwtService jwtService;
 
     @Test
     void shouldGetMembers() throws Exception {
