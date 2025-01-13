@@ -27,7 +27,7 @@ public class MemberInitializer {
                 Member admin = Member
                         .builder()
                         .email("admin@kitchensink.com")
-                        .password(passwordEncoder.encode("password"))
+                        .password(passwordEncoder.encode("password1234"))
                         .name("KS Admin")
                         .phoneNumber("+91XXXXXXXXXX")
                         .roles(List.of("ADMIN"))
@@ -36,7 +36,7 @@ public class MemberInitializer {
                 Member user1 = Member
                         .builder()
                         .email("user1@kitchensink.com")
-                        .password(passwordEncoder.encode("password"))
+                        .password(passwordEncoder.encode("password1234"))
                         .name("KS Normal User 1")
                         .phoneNumber("+91XXXXXXXXXX")
                         .roles(List.of("USER"))
@@ -45,7 +45,7 @@ public class MemberInitializer {
                 Member user2 = Member
                         .builder()
                         .email("user2@kitchensink.com")
-                        .password(passwordEncoder.encode("password"))
+                        .password(passwordEncoder.encode("password1234"))
                         .name("KS Normal User 2")
                         .phoneNumber("+91XXXXXXXXXX")
                         .roles(List.of("USER"))
