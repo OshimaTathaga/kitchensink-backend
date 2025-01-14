@@ -1,18 +1,16 @@
 package com.mongodb.kitchensink.model.co;
 
+import com.mongodb.kitchensink.document.Member;
 import lombok.Builder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Objects;
+import java.util.Optional;
 
 @Builder
 public record UpdateMemberCO(String name, String password, String phoneNumber) {
-    public UpdateMemberCO obfuscatePassword(PasswordEncoder passwordEncoder) {
-        return UpdateMemberCO.builder()
-                .name(this.name)
-                .password(Objects.nonNull(this.password) ? passwordEncoder.encode(this.password): null)
-                .phoneNumber(this.phoneNumber)
-                .build();
-
+    public void merge(PasswordEncoder passwordEncoder, Member base) {
+        Optional.ofNullable(this.name).ifPresent(base::setName);
+        Optional.ofNullable(this.password).map(passwordEncoder::encode).ifPresent(base::setPassword);
+        Optional.ofNullable(this.phoneNumber).ifPresent(base::setPhoneNumber);
     }
 }

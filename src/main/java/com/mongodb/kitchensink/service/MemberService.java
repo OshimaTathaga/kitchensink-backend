@@ -3,7 +3,6 @@ package com.mongodb.kitchensink.service;
 import com.mongodb.kitchensink.config.AppConfigProperties;
 import com.mongodb.kitchensink.document.Member;
 import com.mongodb.kitchensink.error.KitchenSinkException;
-import com.mongodb.kitchensink.mapper.MemberMapper;
 import com.mongodb.kitchensink.model.AuthMember;
 import com.mongodb.kitchensink.model.co.MemberCO;
 import com.mongodb.kitchensink.model.co.UpdateMemberCO;
@@ -25,7 +24,6 @@ import static com.mongodb.kitchensink.error.ErrorCode.NOT_FOUND;
 public class MemberService implements UserDetailsService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final MemberMapper memberMapper;
     private final AppConfigProperties appConfigProperties;
 
     @Override
@@ -66,7 +64,7 @@ public class MemberService implements UserDetailsService {
     public MemberDTO update(UpdateMemberCO updateMemberCO, String email) {
         return memberRepository.findByEmail(email)
                 .map(member -> {
-                    memberMapper.updateMember(updateMemberCO.obfuscatePassword(passwordEncoder), member);
+                    updateMemberCO.merge(passwordEncoder, member);
                     return memberRepository.save(member);
                 })
                 .map(MemberDTO::from)

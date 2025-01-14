@@ -4,8 +4,6 @@ import com.mongodb.kitchensink.config.AppConfigProperties;
 import com.mongodb.kitchensink.document.Member;
 import com.mongodb.kitchensink.error.ErrorCode;
 import com.mongodb.kitchensink.error.KitchenSinkException;
-import com.mongodb.kitchensink.mapper.MemberMapper;
-import com.mongodb.kitchensink.mapper.MemberMapperImpl;
 import com.mongodb.kitchensink.model.co.MemberCO;
 import com.mongodb.kitchensink.model.co.UpdateMemberCO;
 import com.mongodb.kitchensink.model.dto.MemberDTO;
@@ -38,8 +36,6 @@ class MemberServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
-    private MemberMapper memberMapper = new MemberMapperImpl();
-
     private String defaultUserRole = "ROLE_USER";
 
     private MemberService memberService;
@@ -50,7 +46,7 @@ class MemberServiceTest {
 
     @BeforeEach
     void setUp() {
-        memberService = new MemberService(memberRepository, passwordEncoder, memberMapper, new AppConfigProperties(List.of(defaultUserRole), null, null));
+        memberService = new MemberService(memberRepository, passwordEncoder, new AppConfigProperties(List.of(defaultUserRole), null, null));
 
         member = Member.builder()
                 .id("1")
