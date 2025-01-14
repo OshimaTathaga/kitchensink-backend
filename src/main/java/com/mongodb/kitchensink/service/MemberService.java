@@ -66,7 +66,7 @@ public class MemberService implements UserDetailsService {
     public MemberDTO update(UpdateMemberCO updateMemberCO, String email) {
         return memberRepository.findByEmail(email)
                 .map(member -> {
-                    memberMapper.updateMember(updateMemberCO, member);
+                    memberMapper.updateMember(updateMemberCO.obfuscatePassword(passwordEncoder), member);
                     return memberRepository.save(member);
                 })
                 .map(MemberDTO::from)
