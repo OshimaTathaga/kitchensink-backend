@@ -19,27 +19,6 @@
 						"type": "text/javascript",
 						"packages": {}
 					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"pm.sendRequest({\r",
-							"    url: pm.collectionVariables.get(\"base_url\")+\"/login\",\r",
-							"    method: 'GET'\r",
-							"}, function (err, res) {\r",
-							"    let csrfTokenMatch = res.text().match(/name=\"_csrf\" type=\"hidden\" value=\"([^\"]+)\"/);\r",
-							"    if (csrfTokenMatch && csrfTokenMatch[1]) {\r",
-							"        pm.collectionVariables.set('csrf_token', csrfTokenMatch[1]);\r",
-							"    } else {\r",
-							"        console.error('CSRF token not found');\r",
-							"    }\r",
-							"});\r",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
 				}
 			],
 			"request": {
@@ -59,11 +38,6 @@
 						{
 							"key": "password",
 							"value": "password1234",
-							"type": "text"
-						},
-						{
-							"key": "_csrf",
-							"value": "{{csrf_token}}",
 							"type": "text"
 						}
 					]
