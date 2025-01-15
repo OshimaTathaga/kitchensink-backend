@@ -30,7 +30,7 @@
 							"}, function (err, res) {\r",
 							"    let csrfTokenMatch = res.text().match(/name=\"_csrf\" type=\"hidden\" value=\"([^\"]+)\"/);\r",
 							"    if (csrfTokenMatch && csrfTokenMatch[1]) {\r",
-							"        pm.collectionVariables.set('csrf_token', csrfTokenMatch[1]);\r",
+							"        pm.environment.set('csrf_token', csrfTokenMatch[1]);\r",
 							"    } else {\r",
 							"        console.error('CSRF token not found');\r",
 							"    }\r",
@@ -276,10 +276,6 @@
 		},
 		{
 			"key": "token",
-			"value": ""
-		},
-		{
-			"key": "csrf_token",
 			"value": ""
 		}
 	]
