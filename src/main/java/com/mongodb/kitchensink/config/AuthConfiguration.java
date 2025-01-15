@@ -29,8 +29,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -67,6 +65,7 @@ public class AuthConfiguration {
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, JwtService jwtService) throws Exception {
         return http
+//                .csrf(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authorize ->
