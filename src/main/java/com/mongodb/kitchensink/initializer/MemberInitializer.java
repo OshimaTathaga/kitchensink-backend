@@ -29,7 +29,7 @@ public class MemberInitializer {
                         .email("admin@kitchensink.com")
                         .password(passwordEncoder.encode("password1234"))
                         .name("KS Admin")
-                        .phoneNumber("+91XXXXXXXXXX")
+                        .phoneNumber("9988776653")
                         .roles(List.of("ADMIN"))
                         .build();
 
@@ -38,7 +38,7 @@ public class MemberInitializer {
                         .email("user1@kitchensink.com")
                         .password(passwordEncoder.encode("password1234"))
                         .name("KS Normal User 1")
-                        .phoneNumber("+91XXXXXXXXXX")
+                        .phoneNumber("9988776654")
                         .roles(List.of("USER"))
                         .build();
 
@@ -47,7 +47,7 @@ public class MemberInitializer {
                         .email("user2@kitchensink.com")
                         .password(passwordEncoder.encode("password1234"))
                         .name("KS Normal User 2")
-                        .phoneNumber("+91XXXXXXXXXX")
+                        .phoneNumber("9988776655")
                         .roles(List.of("USER"))
                         .build();
 
@@ -55,8 +55,5 @@ public class MemberInitializer {
                 log.info("Bootstrapping Users Successful");
             }
         };
-
-
     }
-
 }
