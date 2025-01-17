@@ -9,6 +9,7 @@ import com.mongodb.kitchensink.model.co.UpdateMemberCO;
 import com.mongodb.kitchensink.model.dto.MemberDTO;
 import com.mongodb.kitchensink.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -21,6 +22,7 @@ import java.util.regex.Pattern;
 import static com.mongodb.kitchensink.constant.KitchensinkConstant.*;
 import static com.mongodb.kitchensink.error.ErrorCode.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberService implements UserDetailsService {
@@ -30,6 +32,7 @@ public class MemberService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        log.debug("Loading user: '{}'.", username);
         return memberRepository.findByEmail(username)
                 .map(AuthMember::new)
                 .orElseThrow(() -> new UsernameNotFoundException("User with email '%s' not found".formatted(username)));
@@ -79,6 +82,8 @@ public class MemberService implements UserDetailsService {
     }
 
     public MemberDTO updateRoles(List<String> roles, String email) {
+        log.info("For user: '{}', updating roles '{}'.", email, roles);
+
         return memberRepository.findByEmail(email)
                 .map(member -> {
                     member.setRoles(roles);

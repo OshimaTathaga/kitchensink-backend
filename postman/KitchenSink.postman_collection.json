@@ -37,7 +37,7 @@
 						},
 						{
 							"key": "password",
-							"value": "password1234",
+							"value": "password",
 							"type": "text"
 						}
 					]
@@ -250,10 +250,6 @@
 		},
 		{
 			"key": "token",
-			"value": ""
-		},
-		{
-			"key": "csrf_token",
 			"value": ""
 		}
 	]
