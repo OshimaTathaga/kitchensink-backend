@@ -199,9 +199,9 @@ class KitchensinkIntegrationTest {
     void shouldSuccessfullyCreateMember() {
         MemberCO memberToBeSaved = MemberCO.builder()
                 .email("user2@kitchensink.com")
-                .password(passwordEncoder.encode("user2-password"))
+                .password(passwordEncoder.encode("user2password"))
                 .name("KS Some User 2")
-                .phoneNumber("+91XXXXXXXXXX")
+                .phoneNumber("9876543210")
                 .build();
 
         MemberDTO savedMemberResponse = RestAssured.given()
@@ -265,7 +265,7 @@ class KitchensinkIntegrationTest {
                 .email("user2@kitchensink.com")
                 .password(passwordEncoder.encode("user2-password"))
                 .name("KS Some User 2")
-                .phoneNumber("+91XXXXXXXXXX")
+                .phoneNumber("9876543210")
                 .roles(List.of("USER"))
                 .build();
 

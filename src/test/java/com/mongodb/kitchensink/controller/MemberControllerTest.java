@@ -91,14 +91,14 @@ class MemberControllerTest {
         MemberCO memberCO = MemberCO.builder()
                 .email("member@example.com")
                 .name("Some Member")
-                .password("strong-password")
-                .phoneNumber("+91XXXXXXXXXX")
+                .password("strong-password1")
+                .phoneNumber("9876543210")
                 .build();
         MemberDTO memberDTO = MemberDTO.builder()
                 .id("1a")
                 .email("member@example.com")
                 .name("Some Member")
-                .phoneNumber("+91XXXXXXXXXX")
+                .phoneNumber("9876543210")
                 .roles(List.of("SOME_ROLE"))
                 .build();
         ArgumentCaptor<MemberCO> captor = ArgumentCaptor.forClass(MemberCO.class);
@@ -113,12 +113,12 @@ class MemberControllerTest {
                 .andExpect(jsonPath("$.id").value("1a"))
                 .andExpect(jsonPath("$.email").value("member@example.com"))
                 .andExpect(jsonPath("$.name").value("Some Member"))
-                .andExpect(jsonPath("$.phoneNumber").value("+91XXXXXXXXXX"))
+                .andExpect(jsonPath("$.phoneNumber").value("9876543210"))
                 .andExpect(jsonPath("$.roles[0]").value("SOME_ROLE"));
 
         assertThat(captor.getValue())
                 .extracting(MemberCO::email, MemberCO::name, MemberCO::phoneNumber, MemberCO::password)
-                .containsExactly("member@example.com", "Some Member", "+91XXXXXXXXXX", "strong-password");
+                .containsExactly("member@example.com", "Some Member", "9876543210", "strong-password1");
     }
 
     @Test

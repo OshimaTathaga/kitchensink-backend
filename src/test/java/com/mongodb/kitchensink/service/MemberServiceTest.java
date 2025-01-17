@@ -53,20 +53,20 @@ class MemberServiceTest {
                 .email("test@example.com")
                 .name("Test User")
                 .roles(List.of("ROLE_USER"))
-                .phoneNumber("1234567890")
+                .phoneNumber("9234567890")
                 .build();
 
         memberCO = MemberCO.builder()
                 .email("test@example.com")
                 .name("Test User")
-                .password("password")
-                .phoneNumber("1234567890")
+                .password("password1234")
+                .phoneNumber("9234567890")
                 .build();
 
         updateMemberCO = UpdateMemberCO.builder()
                 .name("Updated Test User")
-                .password("newPassword")
-                .phoneNumber("0987654321")
+                .password("newPassword1234")
+                .phoneNumber("9987654321")
                 .build();
     }
 
@@ -82,7 +82,7 @@ class MemberServiceTest {
         assertThat(result.email()).isEqualTo("test@example.com");
         assertThat(result.name()).isEqualTo("Test User");
         assertThat(result.roles()).containsExactly("ROLE_USER");
-        assertThat(result.phoneNumber()).isEqualTo("1234567890");
+        assertThat(result.phoneNumber()).isEqualTo("9234567890");
     }
 
     @Test
@@ -99,7 +99,7 @@ class MemberServiceTest {
     @Test
     void shouldSave() {
         when(memberRepository.save(any(Member.class))).thenReturn(member);
-        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword1");
 
         MemberDTO result = memberService.save(memberCO);
 
@@ -107,7 +107,7 @@ class MemberServiceTest {
         assertThat(result.email()).isEqualTo("test@example.com");
         assertThat(result.name()).isEqualTo("Test User");
         assertThat(result.roles()).containsExactly("ROLE_USER");
-        assertThat(result.phoneNumber()).isEqualTo("1234567890");
+        assertThat(result.phoneNumber()).isEqualTo("9234567890");
 
         verify(memberRepository).save(any(Member.class));
     }
@@ -124,7 +124,7 @@ class MemberServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.email()).isEqualTo("test@example.com");
         assertThat(result.name()).isEqualTo("Updated Test User");
-        assertThat(result.phoneNumber()).isEqualTo("0987654321");
+        assertThat(result.phoneNumber()).isEqualTo("9987654321");
 
         verify(memberRepository).save(any(Member.class));
     }
