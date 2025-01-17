@@ -45,7 +45,7 @@ public class MemberController {
 
     @PatchMapping("/{email}")
     @PreAuthorize("hasRole('ADMIN') or authentication.name.equals(#email)")
-    public ResponseEntity<MemberDTO> update(@PathVariable @Valid @Email(regexp = EMAIL_VALIDATION_REGEX) String email, @RequestBody UpdateMemberCO updateMemberCO) {
+    public ResponseEntity<MemberDTO> update(@PathVariable @Valid @Email(regexp = EMAIL_VALIDATION_REGEX) String email, @RequestBody @Valid UpdateMemberCO updateMemberCO) {
         return ResponseEntity.ok(memberService.update(updateMemberCO, email));
     }
 
